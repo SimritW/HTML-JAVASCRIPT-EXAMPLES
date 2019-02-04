@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Lab 1 - Hamilton Recreation Centers</title>
+		
+		<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
+        <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=Apuhohj4nxkQRHh9Tp0ZF-E6oKz0w0HUEUYjknw-NZrm21VEmdKbcjHgT0-xCcr8'></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+		<style>
+			
+			.button{
+				height: 10px;
+				width: 15px;
+				border-style: solid;
+				border-width:2px;
+				border-color: lightgrey;
+				background-color: lightgrey;
+				border-radius: 5px;
+				padding: 1%;
+				margin-right: 10px;
+			}
+			#jsonInfo{
+				display: none;
+			}
+		</style>
+		
+	</head>
+	
+	<body onload='loadMapScenario();'>
+		<div id = "banner">
+			<h1>Hamilton Recreation Centers</h1>
+		</div>
+		<div id="buttonBar">
+			<a class="button" id="all"      type="button">All</a>
+			<a class="button" id="Carlisle" type="button">Carlisle </a>
+			<a class="button" id="Hamilton" type="button">Hamilton</a>
+			<a class="button" id="Binbrook" type="button">Binbrook</a>
+			<a class="button" id="Dundas"   type="button">Dundas</a>
+			<a class="button" id="Ancaster" type="button">Ancaster</a>
+			<a class="button" id="Flamborough"type="button">Flamborough</a>
+			<a class="button" id="Stoney Creek"   type="button">Stoney Creek</a>			
+		</div>
+		<div id="myMap" style='width: 100vw; height: 50vh;'>
+			
+		</div>
+		<div id="userLocation">
+		</div>
+		<button id="json">SHOW JSON DATA</button>
+		<div id="jsonInfo">
+			<pre id="jsonPre"></pre>
+		</div>
+	</body>
+
+
+
+</html>
+<script type='text/javascript'>
+			//list of all the locations as objects
+			var listRecs = [{"name":"Carlisle Community Centre & Arena","address":"1496 Centre Road","city":"Carlisle","phone":"905-689-7283","latitude":"43.39606","longtitude":"-79.98293"},
+				{"name":"Chedoke Twin Pad Arena","address":"91 Chedmac Dr.","city":"Hamilton","phone":"905-546-2429","latitude":"43.23889",	"longtitude":"-79.92077"},
+				{"name":"Coronation Arena and Pool","address":"81 Macklin St. North","city":"Hamilton","phone":"905-546-3109","latitude":"43.2646","longtitude":"-79.89598"},
+				{"name":"Eastwood Arena","address":"111 Burlington St. East","city":"Hamilton","phone":"905-546-3152","latitude":"43.27171","longtitude":"-79.85564"},
+				{"name":"Glanbrook Arena & Auditorium","address":"4300 Binbrook Road","city":"Binbrook","phone":"905-692-9331","latitude":"43.12911","longtitude":"-79.83908"},
+				{"name":"Inch Park Arena & Pool","address":"400 Queensdale Ave.","city":"Hamilton",	"phone":"905-546-4922","latitude":"43.23712","longtitude":"-79.85937"},
+				{"name":"Lawfield Arena","address":"150 Folkstone Ave.","city":"Hamilton","phone":"905-546-4923","latitude":"43.21464","longtitude":"-79.85116"},
+				{"name":"Market Street (J.L. Grightmire) Arena","address":"35 Market St. South","city":"Dundas","phone":"905-540-6678",	"latitude":"43.26596","longtitude":"-79.96339"},
+				{"name":"Mohawk 4 Ice Centre","address":"710 Mountain Brow Blvd.","city":"Hamilton","phone":"905-318-5111","latitude":"43.21037","longtitude":"-79.81616"},
+				{"name":"Morgan Firestone Arena","address":"385 Jerseyville Road West","city":"Ancaster","phone":"905-546-3769","latitude":"43.21674","longtitude":"-80.00733"},
+				{"name":"Mountain (Dave Andreychuk) Arena","address":"25 Hester St.","city":"Hamilton","phone":"905-546-4938","latitude":"43.22558","longtitude":"-79.88101"},
+				{"name":"North Wentworth Twin-Pad Arena","address":"27 Hwy 5","city":"Flamborough","phone":"905-689-6666","latitude":"43.3102291","longtitude":"-79.9202291"},
+				{"name":"Olympic Arena","address":"70 Olympic Dr.","city":"Dundas","phone":"905-540-6686","latitude":"43.27292","longtitude":"-79.93426"},
+				{"name":"Parkdale (Pat Quinn) Arena and Pool","address":"1770 Main St. East","city":"Hamilton","phone":"905-546-4785","latitude":"43.2366018","longtitude":"-79.7939014"},
+				{"name":"Rosedale Arena and Pool","address":"100 Greenhill Ave.","city":"Hamilton","phone":"905-546-4805","latitude":"43.21986","longtitude":"-79.80896"},
+				{"name":"Saltfleet Arena","address":"24 Sherwood Park Road","city":"Stoney Creek","phone":"905-643-3883","latitude":"43.21851","longtitude":"-79.70443"},
+				{"name":"Scott Park Arena","address":"876 Cannon St. East","city":"Hamilton","phone":"905-546-4919","latitude":"43.25033","longtitude":"-79.83038"},
+				{"name":"Spring Valley Arena","address":"29 Orchard Dr.","city":"Ancaster","phone":"905-648-4404","latitude":"43.217","longtitude":"-79.99774"},
+				{"name":"Stoney Creek Arena","address":"37 King St. West","city":"Stoney Creek","phone":"905-662-2426","latitude":"43.26648","longtitude":"-79.95509"},
+				{"name":"Valley Park Arena & Rec Centre","address":"970 Paramount Dr.","city":"Stoney Creek","phone":"905-573-3600","latitude":"43.19332","longtitude":"-79.79796"}];
+			//setting global variables
+			var map;
+			var pin;
+			var infobox;
+			var userPin;
+			//setting click handelers
+			document.getElementById("all").addEventListener("click", filterTheCityPins);
+			document.getElementById("Carlisle").addEventListener("click", filterTheCityPins);
+			document.getElementById("Hamilton").addEventListener("click", filterTheCityPins);
+			document.getElementById("Binbrook").addEventListener("click", filterTheCityPins);
+			document.getElementById("Dundas").addEventListener("click", filterTheCityPins);
+			document.getElementById("Ancaster").addEventListener("click", filterTheCityPins);
+			document.getElementById("Flamborough").addEventListener("click", filterTheCityPins);
+			document.getElementById("Stoney Creek").addEventListener("click", filterTheCityPins);
+			document.getElementById("json").addEventListener("click",jsonPrint);
+			//loading the map and calling the functions to make all the pins
+			function loadMapScenario() 
+			{
+                map = new Microsoft.Maps.Map(document.getElementById('myMap'), {});
+				getUserLocation();
+                infobox = new Microsoft.Maps.Infobox(map.getCenter(), {visible: false});
+				infobox.setMap(map);
+				makeAllPins();
+				
+			};
+			//functino to get the user information
+			function getUserLocation()
+			{
+				//if user says yes create a pin at their location
+				function success(userPositionInfo)
+				{
+					var userLocation = new Microsoft.Maps.Location(
+						userPositionInfo.coords.latitude,
+						userPositionInfo.coords.longitude);
+						
+					userPin = new Microsoft.Maps.Pushpin(userLocation);
+					userPin.metadata = {title: "User Location", discription: "Your Locaiton"};
+					var userLocationId = document.getElementById('userLocation');
+					userLocationId.innerHTML = "GPS puts you at<br>\n\Latitude: " + userLocation.latitude + "\n\<br> Longitude: " +userLocation.longitude; 
+					
+					userPin.metadata = {
+						title: "Current Location"
+					};
+					Microsoft.Maps.Events.addHandler (userPin, 'click', pushpinClickedUser);
+                    map.entities.push(userPin);
+					function pushpinClickedUser(e) {
+					//Make sure the infobox has metadata to display.
+						if (e.target.metadata) {
+							//Set the infobox options with the metadata of the pushpin.
+							infobox.setOptions({
+								location: e.target.getLocation(),
+								title: "User Location",
+								discription: "Your Locaiton",
+								visible: true
+							});
+						}
+					};
+					
+				};
+				//if they say no use a error message
+				function error(){
+					var userLocationId = document.getElementById ( 'userLocation' );
+                    userLocationId.innerHTML = "GPS Co-ordinates Unavailable! Default values have been used. <br> PERMISSION_DENIED: the location acquisition process failed because <br> the document does not have permission to use the Geolocation API";
+				
+				};
+				//ask for user location and run function based of their choice
+				navigator.geolocation.getCurrentPosition(success,error);
+			
+			};
+			//deleting all the pins and info boxes
+			function deleteInfobox()
+			{
+				for (var i = map.entities.getLength() - 1; i >= 0; i--) 
+				{
+					var pushpin = map.entities.get(i);
+					if (pushpin instanceof Microsoft.Maps.Pushpin) {
+						map.entities.removeAt(i);
+					}
+				}
+			};
+			//making all the pins for the map
+			function makeAllPins()
+			{
+				for (var i = 0; i < listRecs.length; i++)
+				{
+					var location = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longtitude);
+					var tempAddress = listRecs[i].address.toString().replace(/ +/g, "");
+					//creating the bing map link when clocked will load bing map page
+					var bingLink = ('https://bing.com/maps/default.aspx?where1='+tempAddress+','+listRecs[i].city);
+					//xml link page
+					var xmlLink = ('http://dev.virtualearth.net/REST/v1/Locations/'+listRecs[i].latitude+','+listRecs[i].longtitude+'?o=xml&key=Apuhohj4nxkQRHh9Tp0ZF-E6oKz0w0HUEUYjknw-NZrm21VEmdKbcjHgT0-xCcr8');
+					pin = new Microsoft.Maps.Pushpin(location);
+					pin.metadata = {title: listRecs[i].name, description: ("<strong>"+listRecs[i].address +"</strong> "+listRecs[i].city +"<img src='icon.png' height='25' width='25''><br>" + listRecs[i].phone + "<br><a href=" + bingLink + ">Bing Maps</a> " + " <a href=" + xmlLink + ">Lat/Lng</a>")};
+					Microsoft.Maps.Events.addHandler(pin, 'click', pushpinClicked);
+					map.entities.push(pin);
+				};
+				//funciton if the pin is clicked
+				function pushpinClicked(e) {
+				//Make sure the infobox has metadata to display.
+					if (e.target.metadata) {
+						//Set the infobox options with the metadata of the pushpin.
+						infobox.setOptions({
+							location: e.target.getLocation(),
+							title: e.target.metadata.title,
+							description: e.target.metadata.description,
+							
+							visible: true
+						});
+					}
+				}
+			};
+			//filter the pins based of what link is pressed
+			function filterTheCityPins(e)
+			{
+				deleteInfobox();
+				if(e.target.id == "all")//if they are all selected
+				{
+					makeAllPins();
+					map.entities.push(userPin);//adding the user pin
+				}
+				for (var i = 0; i < listRecs.length; i++)
+				{
+					
+					if(e.target.id == listRecs[i].city)//if the id at the city is the same than the user selected that city, and makes pins for that city
+					{
+						var location = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longtitude);
+						var tempAddress = listRecs[i].address.toString().replace(/ +/g, "");
+						var bingLink = ('https://bing.com/maps/default.aspx?where1='+tempAddress+','+listRecs[i].city);
+						var xmlLink = ('http://dev.virtualearth.net/REST/v1/Locations/'+listRecs[i].latitude+','+listRecs[i].longtitude+'?o=xml&key=Apuhohj4nxkQRHh9Tp0ZF-E6oKz0w0HUEUYjknw-NZrm21VEmdKbcjHgT0-xCcr8');
+						pin = new Microsoft.Maps.Pushpin(location);
+						//create the meta data for the pin based off the information needed
+						pin.metadata = {title: listRecs[i].name, description: ("<strong>"+listRecs[i].address +"</strong> "+listRecs[i].city +"<img src='images/icon.PNG' height='25' width='25''><br>" + listRecs[i].phone + "<br><a href=" + bingLink + ">Bing Maps</a> " + " <a href=" + xmlLink + ">Lat/Lng</a>")};
+						Microsoft.Maps.Events.addHandler(pin, 'click', pushpinClicked);
+						map.entities.push(pin);	
+						map.entities.push(userPin);//adding the user pin
+					}
+					//pushpin function when the pin is clicked op open info box
+					function pushpinClicked(e) {
+					//Make sure the infobox has metadata to display.
+						if (e.target.metadata) {
+							//Set the infobox options with the metadata of the pushpin.
+							infobox.setOptions({
+								location: e.target.getLocation(),
+								title: e.target.metadata.title,
+								description: e.target.metadata.description,
+								
+								visible: true
+							});
+						}
+					}
+				}
+			};
+			
+			
+			var myJson = JSON.stringify(listRecs,null, '\t');	//stringifying the json recsList
+			$("#jsonPre").append(myJson);	//appening to the pre tags
+			var jsonInfoStatus = false;		//setting global bool
+			function jsonPrint(){
+				if ( jsonInfoStatus == false ) {	//if flase show
+                    $("#jsonInfo").show();
+                    jsonInfoStatus = true;
+                }
+                else {							//if true hide
+                    $("#jsonInfo").hide();
+                   jsonInfoStatus = false;
+                } 
+ 
+				
+			};
+</script>
